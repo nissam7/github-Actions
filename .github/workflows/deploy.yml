@@ -1,0 +1,34 @@
+name: Docker CI/CD
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy Website
+        uses: appleboy/ssh-action@v1.0.3
+
+        with:
+          host: ${{ secrets.HOST }}
+          username: ubuntu
+          key: ${{ secrets.SSH_KEY }}
+
+          script: |
+            cd github_Actions
+
+            git pull origin main
+
+            sudo docker stop mywebsite-container || true
+            sudo docker rm mywebsite-container || true
+
+            sudo docker build -t mywebsite .
+
+            sudo docker run -d \
+              --name mywebsite-container \
+              -p 80:80 \
+              mywebsite
